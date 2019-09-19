@@ -36,8 +36,8 @@ void addMatrix(float* out, float* a, float* b, int rowCount, int columnCount) {
 int main(void) {
 	srand(time(NULL));
 
-	int matrixRowCount = 8;
-	int matrixColumnCount = 8;
+	int matrixRowCount = 1<<5;
+	int matrixColumnCount = 1<<5;
 	int memorySize = matrixRowCount*matrixColumnCount*sizeof(float);
 
 	float* h_a = (float*)malloc(memorySize);
@@ -55,7 +55,7 @@ int main(void) {
 	cudaMemcpy(d_a, h_a, memorySize, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_b, h_b, memorySize, cudaMemcpyHostToDevice);
 
-	dim3 block(matrixRowCount / 2, matrixColumnCount / 2);
+	dim3 block(32, 32);
 	dim3 grid((matrixRowCount + block.x - 1) / block.x, (matrixColumnCount + block.y - 1) / block.y);
 	addMatrix<<<grid, block>>>(d_c, d_a, d_b, matrixRowCount, matrixColumnCount);
 
@@ -66,9 +66,9 @@ int main(void) {
 	cudaFree(d_b);
 	cudaFree(d_c);
 
-	printMatrix(h_a, matrixRowCount, matrixColumnCount);
-	printMatrix(h_b, matrixRowCount, matrixColumnCount);
-	printMatrix(h_c, matrixRowCount, matrixColumnCount);
+	// printMatrix(h_a, matrixRowCount, matrixColumnCount);
+	// printMatrix(h_b, matrixRowCount, matrixColumnCount);
+	// printMatrix(h_c, matrixRowCount, matrixColumnCount);
 
 	cudaDeviceReset();
 	return 0;
