@@ -4,6 +4,13 @@
 #include <cmath>
 
 void printMatrix(float* matrix, int rowCount, int columnCount) {
+	for (int y = 0; y < rowCount; y++) {
+		for (int x = 0; x < columnCount; x++) {
+			printf("%d ", int(matrix[(y * columnCount) + x]));
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
 void initializeMatrix(float* matrix, int rowCount, int columnCount) {
@@ -15,16 +22,22 @@ void initializeMatrix(float* matrix, int rowCount, int columnCount) {
 }
 
 __global__
-void addMatrix(float* out, float* a, float* b) {
+void addMatrix(float* out, float* a, float* b, int rowCount, int columnCount) {
 	int x = (blockIdx.x * blockDim.x) + threadIdx.x;
-	out[x] = a[x] + b[x];
+	int y = (blockIdx.y * blockDim.y) + threadIdx.y;
+
+	int index = (x * columnCount) + y;
+
+	if (x < rowCount && y < columnCount) {
+		out[index] = a[index] + b[index];
+	}
 }
 
 int main(void) {
 	srand(time(NULL));
 
-	int matrixRowCount = 4;
-	int matrixColumnCount = 4;
+	int matrixRowCount = 8;
+	int matrixColumnCount = 8;
 	int memorySize = matrixRowCount*matrixColumnCount*sizeof(float);
 
 	float* h_a = (float*)malloc(memorySize);
@@ -42,9 +55,9 @@ int main(void) {
 	cudaMemcpy(d_a, h_a, memorySize, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_b, h_b, memorySize, cudaMemcpyHostToDevice);
 
-	dim3 block(256);
-	dim3 grid((matrixSize + block.x - 1) / block.x);
-	addMatrix<<<grid, block>>>(d_c, d_a, d_b);
+	dim3 block(matrixRowCount / 2, matrixColumnCount / 2);
+	dim3 grid((matrixRowCount + block.x - 1) / block.x, (matrixColumnCount + block.y - 1) / block.y);
+	addMatrix<<<grid, block>>>(d_c, d_a, d_b, matrixRowCount, matrixColumnCount);
 
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_c, d_c, memorySize, cudaMemcpyDeviceToHost);
@@ -53,9 +66,9 @@ int main(void) {
 	cudaFree(d_b);
 	cudaFree(d_c);
 
-	printMatrix(h_a, matrixSize);
-	printMatrix(h_b, matrixSize);
-	printMatrix(h_c, matrixSize);
+	printMatrix(h_a, matrixRowCount, matrixColumnCount);
+	printMatrix(h_b, matrixRowCount, matrixColumnCount);
+	printMatrix(h_c, matrixRowCount, matrixColumnCount);
 
 	cudaDeviceReset();
 	return 0;
