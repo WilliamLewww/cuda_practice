@@ -2,11 +2,7 @@ CC=g++
 NVCC=/usr/local/cuda-10.1/bin/nvcc
 NVPROF=/usr/local/cuda-10.1/bin/nvprof
 MEMCHECK=/usr/local/cuda-10.1/bin/cuda-memcheck
-CXXFLAGS=
 CUDAFLAGS=--gpu-architecture=sm_50
-LIBS=
-LIBDIRS=
-INCDIRS=
 CURRENTFILE=array_sum
 
 all: clean compile run
