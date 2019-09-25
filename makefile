@@ -13,6 +13,7 @@ all: clean compile run
 
 clean:
 	rm -rf bin
+	rm -rf dump
 
 compile:
 	mkdir -p bin
