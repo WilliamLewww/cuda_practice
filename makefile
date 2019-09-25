@@ -7,6 +7,7 @@ CUDAFLAGS=--gpu-architecture=sm_50
 LIBS=
 LIBDIRS=
 INCDIRS=
+CURRENTFILE=array_sum
 
 all: clean compile run
 
@@ -15,21 +16,21 @@ clean:
 
 compile:
 	mkdir -p bin
-	$(NVCC) $(CUDAFLAGS) ./src/array_sum.cu -o ./bin/array_sum.out
+	$(NVCC) $(CUDAFLAGS) ./src/$(CURRENTFILE).cu -o ./bin/$(CURRENTFILE).out
 run:
-	./bin/array_sum.out
+	./bin/$(CURRENTFILE).out
 
 memory-check:
-	$(MEMCHECK) ./bin/array_sum.out
+	$(MEMCHECK) ./bin/$(CURRENTFILE).out
 
 profile:
 	mkdir -p dump
-	cd dump; sudo $(NVPROF) ../bin/array_sum.out 2>profile.log; cat profile.log;
+	cd dump; sudo $(NVPROF) ../bin/$(CURRENTFILE).out 2>profile.log; cat profile.log;
 
 profile-metrics:
 	mkdir -p dump
-	cd dump; sudo $(NVPROF) --metrics all ../bin/array_sum.out 2>profile-metrics.log; cat profile-metrics.log;
+	cd dump; sudo $(NVPROF) --metrics all ../bin/$(CURRENTFILE).out 2>profile-metrics.log; cat profile-metrics.log;
 
 profile-events:
 	mkdir -p dump
-	cd dump; sudo $(NVPROF) --events all ../bin/array_sum.out 2>profile-events.log; cat profile-events.log;
+	cd dump; sudo $(NVPROF) --events all ../bin/$(CURRENTFILE).out 2>profile-events.log; cat profile-events.log;
