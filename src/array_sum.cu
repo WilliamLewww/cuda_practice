@@ -43,6 +43,7 @@ int main(void) {
 	dim3 block = 32;
 	dim3 grid = ((count + block.x - 1) / block.x);
 	reduceNeighboredLess<<<grid, block>>>(d_i, d_o, count);
+	cudaDeviceSynchronize();
 
 	cudaMemcpy(h_o, d_o, size, cudaMemcpyDeviceToHost);
 	cudaFree(d_i);
@@ -55,7 +56,8 @@ int main(void) {
 
 	printf("\ntotal sum (0 to %d): %d\n\n", count, sum);
 
-	cudaDeviceSynchronize();
+	free(h_i);
+	free(h_o);
 	cudaDeviceReset();
 
 	return 0;
