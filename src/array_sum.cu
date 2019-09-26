@@ -40,7 +40,7 @@ int main(void) {
 
 	cudaMemcpy(d_i, h_i, size, cudaMemcpyHostToDevice);
 
-	dim3 block = 32;
+	dim3 block = 1024;
 	dim3 grid = ((count + block.x - 1) / block.x);
 	reduceNeighboredLess<<<grid, block>>>(d_i, d_o, count);
 	cudaDeviceSynchronize();
