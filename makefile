@@ -2,6 +2,7 @@ CC=g++
 NVCC=/usr/local/cuda-10.1/bin/nvcc
 NVPROF=/usr/local/cuda-10.1/bin/nvprof
 MEMCHECK=/usr/local/cuda-10.1/bin/cuda-memcheck
+NSIGHTCLI=/usr/local/cuda-10.1/bin/nv-nsight-cu-cli
 CUDAFLAGS=--gpu-architecture=sm_50
 CURRENTFILE=array_sum
 
@@ -31,3 +32,7 @@ profile-metrics:
 profile-events:
 	mkdir -p dump
 	cd dump; sudo $(NVPROF) --events all ../bin/$(CURRENTFILE).out 2>profile-events.log; cat profile-events.log;
+
+nsight-cli:
+	mkdir -p dump
+	cd dump; sudo $(NSIGHTCLI) ../bin/$(CURRENTFILE).out > nsight-cli.log; cat nsight-cli.log;
