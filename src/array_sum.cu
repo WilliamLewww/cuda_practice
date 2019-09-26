@@ -2,27 +2,7 @@
 
 __global__
 void reduceNeighboredLess(int* g_i, int* g_o, int count) {
-	int tid = threadIdx.x;
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-	int* i = g_i + (blockIdx.x * blockDim.x);
-
-	if (idx >= count) {
-		return;
-	}
-
-	for (int stride = 1; stride < blockDim.x; stride *= 2) {
-		int index = 2 * stride * tid;
-		if (index < blockDim.x) {
-			i[index] += i[index + stride];
-		}
-
-		__syncthreads();
-	}
-
-	if (tid == 0) {
-		g_o[blockIdx.x] = i[0];
-	}
+	
 }
 
 int main(void) {
