@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 __global__
-void arrayPartialSum(int* array, int count) {
+void arrayPartialSum(int* partial, int* array, int count) {
 	if (blockIdx.x * blockDim.x + threadIdx.x >= count) return;
 
 	int* local_array = array + (blockIdx.x * blockDim.x);
@@ -18,7 +18,7 @@ void arrayPartialSum(int* array, int count) {
 	}
 
 	if (threadIdx.x == 0) {
-		printf("%d\n", local_array[0]);
+		partial[blockIdx.x] = local_array[0];
 	}
 }
 
@@ -34,9 +34,27 @@ int main(void) {
 	cudaMalloc((int**)&device_array, input*sizeof(int));
 	cudaMemcpy(device_array, host_array, input*sizeof(int), cudaMemcpyHostToDevice);
 
-	arrayPartialSum<<<grid,block>>>(device_array, input);
+	int* host_partial = (int*)malloc(grid.x*sizeof(int));
 
+	int* device_partial;
+	cudaMalloc((int**)&device_partial, grid.x*sizeof(int));
+
+	arrayPartialSum<<<grid,block>>>(device_partial, device_array, input);
 	cudaDeviceSynchronize();
+
+	cudaMemcpy(host_partial, device_partial, grid.x*sizeof(int), cudaMemcpyDeviceToHost);
+	cudaFree(device_array);
+	cudaFree(device_partial);
+
+	int sum = 0;
+	for (int x = 0; x < grid.x; x++) {
+		sum += host_partial[x];
+	}
+	free(host_array);
+	free(host_partial);
+
+	printf("\ntotal sum in [0, %d): %d\n\n", input, sum);
+
 	cudaDeviceReset();
 	return 0;
 }
