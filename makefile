@@ -1,8 +1,10 @@
+CUDAPATH=/usr/local/cuda-10.1
+
 CC=g++
-NVCC=/usr/local/cuda-10.1/bin/nvcc
-NVPROF=/usr/local/cuda-10.1/bin/nvprof
-MEMCHECK=/usr/local/cuda-10.1/bin/cuda-memcheck
-NSIGHTCLI=/usr/local/cuda-10.1/bin/nv-nsight-cu-cli
+NVCC=$(CUDAPATH)/bin/nvcc
+NVPROF=$(CUDAPATH)/bin/nvprof
+MEMCHECK=$(CUDAPATH)/bin/cuda-memcheck
+NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
 CUDAFLAGS=--gpu-architecture=sm_50
 CURRENTFILE=array_sum
 
