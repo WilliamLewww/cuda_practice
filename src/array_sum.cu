@@ -2,6 +2,7 @@
 //output: sum of all numbers in [0, integer)
 
 #include <stdio.h>
+#include "analysis.h"
 
 __global__
 void arrayPartialSum(int* partial, int* array, int count) {
@@ -78,7 +79,15 @@ int callArrayPartialSumKernel(int count) {
 
 int main(void) {
 	int input = 1 << 16;
-	printf("\ntotal sum in [0, %d): %d\n\n", input, callArrayPartialSumKernel(input));
+
+	Analysis::setAbsoluteStart();
+	Analysis::createLabel(0, "arrayPartialSum");
+
+	Analysis::begin();
+	printf("\ntotal sum in [0, %d): %d\n", input, callArrayPartialSumKernel(input));
+	Analysis::end(0);
+
+	Analysis::printAll();
 	
 	return 0;
 }
