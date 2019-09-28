@@ -77,15 +77,24 @@ int callArrayPartialSumKernel(int count) {
 	return sum;
 }
 
+int callarrayPartialSumUnrolled2Kernel(int count) {
+	return 0;
+}
+
 int main(void) {
 	int input = 1 << 16;
 
 	Analysis::setAbsoluteStart();
 	Analysis::createLabel(0, "arrayPartialSum");
+	Analysis::createLabel(1, "arrayPartialSumUnrolled2");
 
 	Analysis::begin();
-	printf("\ntotal sum in [0, %d): %d\n", input, callArrayPartialSumKernel(input));
+	printf("\narrayPartialSum: %d\n", callArrayPartialSumKernel(input));
 	Analysis::end(0);
+
+	Analysis::begin();
+	printf("arrayPartialSumUnrolled2: %d\n", callarrayPartialSumUnrolled2Kernel(input));
+	Analysis::end(1);
 
 	Analysis::printAll();
 	
