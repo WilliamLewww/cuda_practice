@@ -50,11 +50,11 @@ public:
 
 			for (int z = 0; z < labelList.size(); z++) {
 				if (labelList[z].first == x) {
-					printf("%-30s ", labelList[z].second);
+					printf("%-45s ", labelList[z].second);
 				}
 			}
 
-			printf("[%d]: %lu\n", x, average / durationList[x].size());
+			printf("[%d]: %-3lu\n", x, average / durationList[x].size());
 
 		}
 

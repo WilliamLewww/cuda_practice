@@ -89,11 +89,11 @@ int main(void) {
 	Analysis::createLabel(1, "arrayPartialSumUnrolled2");
 
 	Analysis::begin();
-	printf("\n%-30s %d\n", "arrayPartialSum:", callArrayPartialSumKernel(input));
+	printf("\n%-50s %d\n", "arrayPartialSum:", callArrayPartialSumKernel(input));
 	Analysis::end(0);
 
 	Analysis::begin();
-	printf("%-30s %d\n", "arrayPartialSumUnrolled2:", callarrayPartialSumUnrolled2Kernel(input));
+	printf("%-50s %d\n", "arrayPartialSumUnrolled2:", callarrayPartialSumUnrolled2Kernel(input));
 	Analysis::end(1);
 
 	Analysis::printAll();
