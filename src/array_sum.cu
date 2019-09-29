@@ -5,6 +5,11 @@
 #include "analysis.h"
 
 __global__
+void arraySum(int* partial, int* array, int count) {
+	*partial += blockIdx.x * blockDim.x + threadIdx.x;
+}
+
+__global__
 void arrayPartialSum(int* partial, int* array, int count) {
 	if (blockIdx.x * blockDim.x + threadIdx.x >= count) return;
 
