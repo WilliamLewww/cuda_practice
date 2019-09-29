@@ -4,9 +4,13 @@
 #include <stdio.h>
 #include "analysis.h"
 
-__global__
-void arraySum(int* partial, int* array, int count) {
-	*partial += blockIdx.x * blockDim.x + threadIdx.x;
+int arraySum(int* array, int count) {
+	int sum = 0;
+	for (int x = 0; x < count; x++) {
+		sum += array[x];
+	}
+
+	return sum;
 }
 
 __global__
@@ -80,12 +84,9 @@ void arrayPartialSumUnrolled8(int* partial, int* array, int count) {
 	}
 }
 
-int callArrayPartialSumKernel(int count) {
+int callArrayPartialSumKernel(int* host_array, int count) {
 	dim3 block = (64);
 	dim3 grid = ((count + block.x - 1) / block.x);
-
-	int* host_array = (int*)malloc(count*sizeof(int));
-	for (int x = 0; x < count; x++) { host_array[x] = x; }
 
 	int* device_array;
 	cudaMalloc((int**)&device_array, count*sizeof(int));
@@ -96,8 +97,10 @@ int callArrayPartialSumKernel(int count) {
 	int* device_partial;
 	cudaMalloc((int**)&device_partial, grid.x*sizeof(int));
 
+	Analysis::begin();
 	arrayPartialSum<<<grid,block>>>(device_partial, device_array, count);
 	cudaDeviceSynchronize();
+	Analysis::end(1);
 
 	cudaMemcpy(host_partial, device_partial, grid.x*sizeof(int), cudaMemcpyDeviceToHost);
 	cudaFree(device_array);
@@ -107,7 +110,6 @@ int callArrayPartialSumKernel(int count) {
 	for (int x = 0; x < grid.x; x++) {
 		sum += host_partial[x];
 	}
-	free(host_array);
 	free(host_partial);
 
 	cudaDeviceReset();
@@ -115,12 +117,9 @@ int callArrayPartialSumKernel(int count) {
 	return sum;
 }
 
-int callArrayPartialSumUnrolled2Kernel(int count) {
+int callArrayPartialSumUnrolled2Kernel(int* host_array, int count) {
 	dim3 block = (64);
 	dim3 grid = ((count + block.x - 1) / block.x);
-
-	int* host_array = (int*)malloc(count*sizeof(int));
-	for (int x = 0; x < count; x++) { host_array[x] = x; }
 
 	int* device_array;
 	cudaMalloc((int**)&device_array, count*sizeof(int));
@@ -131,8 +130,10 @@ int callArrayPartialSumUnrolled2Kernel(int count) {
 	int* device_partial;
 	cudaMalloc((int**)&device_partial, grid.x*sizeof(int));
 
+	Analysis::begin();
 	arrayPartialSumUnrolled2<<<grid.x / 2,block>>>(device_partial, device_array, count);
 	cudaDeviceSynchronize();
+	Analysis::end(2);
 
 	cudaMemcpy(host_partial, device_partial, grid.x*sizeof(int), cudaMemcpyDeviceToHost);
 	cudaFree(device_array);
@@ -142,7 +143,6 @@ int callArrayPartialSumUnrolled2Kernel(int count) {
 	for (int x = 0; x < grid.x; x++) {
 		sum += host_partial[x];
 	}
-	free(host_array);
 	free(host_partial);
 
 	cudaDeviceReset();
@@ -150,12 +150,9 @@ int callArrayPartialSumUnrolled2Kernel(int count) {
 	return sum;
 }
 
-int callArrayPartialSumUnrolled8Kernel(int count) {
+int callArrayPartialSumUnrolled8Kernel(int* host_array, int count) {
 	dim3 block = (64);
 	dim3 grid = ((count + block.x - 1) / block.x);
-
-	int* host_array = (int*)malloc(count*sizeof(int));
-	for (int x = 0; x < count; x++) { host_array[x] = x; }
 
 	int* device_array;
 	cudaMalloc((int**)&device_array, count*sizeof(int));
@@ -166,8 +163,10 @@ int callArrayPartialSumUnrolled8Kernel(int count) {
 	int* device_partial;
 	cudaMalloc((int**)&device_partial, grid.x*sizeof(int));
 
+	Analysis::begin();
 	arrayPartialSumUnrolled8<<<grid.x / 8,block>>>(device_partial, device_array, count);
 	cudaDeviceSynchronize();
+	Analysis::end(3);
 
 	cudaMemcpy(host_partial, device_partial, grid.x*sizeof(int), cudaMemcpyDeviceToHost);
 	cudaFree(device_array);
@@ -177,7 +176,6 @@ int callArrayPartialSumUnrolled8Kernel(int count) {
 	for (int x = 0; x < grid.x; x++) {
 		sum += host_partial[x];
 	}
-	free(host_array);
 	free(host_partial);
 
 	cudaDeviceReset();
@@ -188,24 +186,24 @@ int callArrayPartialSumUnrolled8Kernel(int count) {
 int main(void) {
 	int input = 1 << 16;
 
+	int* host_array = (int*)malloc(input*sizeof(int));
+	for (int x = 0; x < input; x++) { host_array[x] = x; }
+
 	Analysis::setAbsoluteStart();
-	Analysis::createLabel(0, "arrayPartialSum");
-	Analysis::createLabel(1, "arrayPartialSumUnrolled2");
-	Analysis::createLabel(2, "arrayPartialSumUnrolled8");
+	Analysis::createLabel(0, "arraySum (CPU)");
+	Analysis::createLabel(1, "arrayPartialSum");
+	Analysis::createLabel(2, "arrayPartialSumUnrolled2");
+	Analysis::createLabel(3, "arrayPartialSumUnrolled8");
 
 	cudaDeviceReset();
 
 	Analysis::begin();
-	printf("\n%-50s %d\n", "arrayPartialSum:", callArrayPartialSumKernel(input));
+	printf("\n%-50s %d\n", "arraySum (CPU):", arraySum(host_array, input));
 	Analysis::end(0);
 
-	Analysis::begin();
-	printf("%-50s %d\n", "arrayPartialSumUnrolled2:", callArrayPartialSumUnrolled2Kernel(input));
-	Analysis::end(1);
-
-	Analysis::begin();
-	printf("%-50s %d\n", "arrayPartialSumUnrolled8:", callArrayPartialSumUnrolled8Kernel(input));
-	Analysis::end(2);
+	printf("%-50s %d\n", "arrayPartialSum:", callArrayPartialSumKernel(host_array, input));
+	printf("%-50s %d\n", "arrayPartialSumUnrolled2:", callArrayPartialSumUnrolled2Kernel(host_array, input));
+	printf("%-50s %d\n", "arrayPartialSumUnrolled8:", callArrayPartialSumUnrolled8Kernel(host_array, input));
 
 	Analysis::printAll();
 	
