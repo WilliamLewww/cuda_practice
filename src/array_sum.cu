@@ -29,6 +29,21 @@ void arrayPartialSumUnrolled2(int* partial, int* array, int count) {
 	if (idx + blockDim.x < count) { 
 		array[idx] += array[idx + blockDim.x]; 
 	}
+
+	int* local_array = array + (2 * blockIdx.x * blockDim.x);
+	__syncthreads();
+
+	for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+		if (threadIdx.x < stride) {
+			local_array[threadIdx.x] += local_array[threadIdx.x + stride];
+		}
+		
+		__syncthreads();
+	}
+
+	if (threadIdx.x == 0) {
+		partial[blockIdx.x] = local_array[0];
+	}
 }
 
 int callArrayPartialSumKernel(int count) {
