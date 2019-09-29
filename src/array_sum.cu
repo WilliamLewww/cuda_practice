@@ -27,16 +27,17 @@ __global__
 void arrayPartialSumUnrolled2(int* partial, int* array, int count) {
 	int idx = (2 * blockIdx.x * blockDim.x) + threadIdx.x;
 
-	array[idx] += array[idx + blockDim.x]; 
+	if (idx + blockDim.x < count) {
+		array[idx] += array[idx + blockDim.x]; 
+	}
 	__syncthreads();
-	
+
 	int* local_array = array + (2 * blockIdx.x * blockDim.x);
 
 	for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
 		if (threadIdx.x < stride) {
 			local_array[threadIdx.x] += local_array[threadIdx.x + stride];
 		}
-		
 		__syncthreads();
 	}
 
@@ -49,13 +50,15 @@ __global__
 void arrayPartialSumUnrolled8(int* partial, int* array, int count) {
 	int idx = (8 * blockIdx.x * blockDim.x) + threadIdx.x;
 	
-	array[idx] += array[idx + blockDim.x];
-	array[idx] += array[idx + (2 * blockDim.x)];
-	array[idx] += array[idx + (3 * blockDim.x)];
-	array[idx] += array[idx + (4 * blockDim.x)];
-	array[idx] += array[idx + (5 * blockDim.x)];
-	array[idx] += array[idx + (6 * blockDim.x)];
-	array[idx] += array[idx + (7 * blockDim.x)];
+	if (idx + (7 * blockDim.x) < count) {
+		array[idx] += array[idx + blockDim.x];
+		array[idx] += array[idx + (2 * blockDim.x)];
+		array[idx] += array[idx + (3 * blockDim.x)];
+		array[idx] += array[idx + (4 * blockDim.x)];
+		array[idx] += array[idx + (5 * blockDim.x)];
+		array[idx] += array[idx + (6 * blockDim.x)];
+		array[idx] += array[idx + (7 * blockDim.x)];
+	}
 	__syncthreads();
 
 	int* local_array = array + (8 * blockIdx.x * blockDim.x);
@@ -64,7 +67,6 @@ void arrayPartialSumUnrolled8(int* partial, int* array, int count) {
 		if (threadIdx.x < stride) {
 			local_array[threadIdx.x] += local_array[threadIdx.x + stride];
 		}
-		
 		__syncthreads();
 	}
 
