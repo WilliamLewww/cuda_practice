@@ -25,20 +25,9 @@ void arrayPartialSum(int* partial, int* array, int count) {
 
 __global__
 void arrayPartialSumUnrolled2(int* partial, int* array, int count) {
-	if (blockIdx.x * blockDim.x + threadIdx.x >= count) return;
-
-	int* local_array = array + (blockIdx.x * blockDim.x);
-
-	for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
-		if (threadIdx.x < stride) {
-			local_array[threadIdx.x] += local_array[threadIdx.x + stride];
-		}
-
-		__syncthreads();
-	}
-
-	if (threadIdx.x == 0) {
-		partial[blockIdx.x] = local_array[0];
+	int idx = (2 * blockIdx.x * blockDim.x) + threadIdx.x;
+	if (idx + blockDim.x < count) { 
+		array[idx] += array[idx + blockDim.x]; 
 	}
 }
 
@@ -78,7 +67,38 @@ int callArrayPartialSumKernel(int count) {
 }
 
 int callarrayPartialSumUnrolled2Kernel(int count) {
-	return 0;
+	dim3 block = (64);
+	dim3 grid = ((count + block.x - 1) / block.x);
+
+	int* host_array = (int*)malloc(count*sizeof(int));
+	for (int x = 0; x < count; x++) { host_array[x] = x; }
+
+	int* device_array;
+	cudaMalloc((int**)&device_array, count*sizeof(int));
+	cudaMemcpy(device_array, host_array, count*sizeof(int), cudaMemcpyHostToDevice);
+
+	int* host_partial = (int*)malloc(grid.x*sizeof(int));
+
+	int* device_partial;
+	cudaMalloc((int**)&device_partial, grid.x*sizeof(int));
+
+	arrayPartialSumUnrolled2<<<grid.x / 2,block>>>(device_partial, device_array, count);
+	cudaDeviceSynchronize();
+
+	cudaMemcpy(host_partial, device_partial, grid.x*sizeof(int), cudaMemcpyDeviceToHost);
+	cudaFree(device_array);
+	cudaFree(device_partial);
+
+	int sum = 0;
+	for (int x = 0; x < grid.x; x++) {
+		sum += host_partial[x];
+	}
+	free(host_array);
+	free(host_partial);
+
+	cudaDeviceReset();
+
+	return sum;
 }
 
 int main(void) {
@@ -87,6 +107,8 @@ int main(void) {
 	Analysis::setAbsoluteStart();
 	Analysis::createLabel(0, "arrayPartialSum");
 	Analysis::createLabel(1, "arrayPartialSumUnrolled2");
+
+	cudaDeviceReset();
 
 	Analysis::begin();
 	printf("\n%-50s %d\n", "arrayPartialSum:", callArrayPartialSumKernel(input));
