@@ -30,12 +30,13 @@ void arrayPartialSumNested(int* partial, int* array, int count) {
 	if (stride > 1 && threadIdx.x < stride) {
 		local_array[threadIdx.x] += local_array[threadIdx.x + stride];
 	}
-
 	__syncthreads();
 
 	if (threadIdx.x == 0) {
 		arrayPartialSumNested<<<1, stride>>>(local_partial, local_array, stride);
+		cudaDeviceSynchronize();
 	}
+	__syncthreads();
 }
 
 void callNestedHelloWord() {
@@ -70,9 +71,7 @@ int callArrayPartialSumNestedKernel(int* host_array, int count) {
 	cudaFree(device_partial);
 
 	int sum = 0;
-	for (int x = 0; x < grid.x; x++) {
-		sum += host_partial[x];
-	}
+	for (int x = 0; x < grid.x; x++) { sum += host_partial[x]; }
 	free(host_partial);
 
 	cudaDeviceReset();
