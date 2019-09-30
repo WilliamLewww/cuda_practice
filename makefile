@@ -6,7 +6,7 @@ NVPROF=$(CUDAPATH)/bin/nvprof
 MEMCHECK=$(CUDAPATH)/bin/cuda-memcheck
 NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
 CUDAFLAGS=--gpu-architecture=sm_50
-CURRENTFILE=array_sum
+CURRENTFILE=array_sum_unroll
 
 all: clean compile run
 
