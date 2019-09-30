@@ -50,7 +50,7 @@ public:
 
 			for (int z = 0; z < labelList.size(); z++) {
 				if (labelList[z].first == x) {
-					printf("%-45s ", labelList[z].second);
+					printf("%-55s ", labelList[z].second);
 				}
 			}
 
