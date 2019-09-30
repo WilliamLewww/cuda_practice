@@ -6,7 +6,7 @@
 
 __global__
 void nestedHelloWorld(int count, int depth) {
-	printf("Depth %d, Thread %d: Hello World!\n", depth, threadIdx.x);
+	printf("Depth %d, Thread %d, Block %d: Hello World!\n", depth, threadIdx.x, blockIdx.x);
 
 	if (count == 1) { return; }
 
@@ -17,10 +17,17 @@ void nestedHelloWorld(int count, int depth) {
 	}
 }
 
-int main(void) {
-	nestedHelloWorld<<<1,8>>>(8, 0);
+void callNestedHelloWord() {
+	int block = 8;
+	int grid = 1;
+
+	nestedHelloWorld<<<grid,block>>>(block, 0);
 	cudaDeviceSynchronize();
 	cudaDeviceReset();
+}
 
+int main(void) {
+	callNestedHelloWord();
+	
 	return 0;
 }
