@@ -8,6 +8,13 @@ void changeGlobalData() {
 }
 
 int main(void) {
+	int device = 0;
+	cudaSetDevice(device);
+	cudaDeviceProp deviceProp;
+	cudaGetDeviceProperties(&deviceProp, device);
+
+	printf("\nDevice #%d, %s\n", device, deviceProp.name);
+
 	float* value = (float*)malloc(sizeof(float));
 	*value = 1.23;
 
