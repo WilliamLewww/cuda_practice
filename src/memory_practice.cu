@@ -1,4 +1,3 @@
-#include <cuda_runtime.h>
 #include <stdio.h>
 
 __device__ float globalData;
@@ -11,7 +10,7 @@ void changeGlobalData() {
 int main(void) {
 	float* value = (float*)malloc(sizeof(float));
 	*value = 1.23;
-	
+
 	cudaMemcpyToSymbol(globalData, value, sizeof(float));
 	changeGlobalData<<<1,1>>>();
 	cudaMemcpyFromSymbol(value, globalData, sizeof(float));
