@@ -14,6 +14,13 @@ void updateArray(int* array) {
 	array[idx] *= 2.00f;
 }
 
+void printArray(int* array, int count) {
+	for (int x = 0; x < count; x++) {
+		printf("%d ", array[x]);
+	}
+	printf("\n");
+}
+
 int main(void) {
 	int count = 5;
 	int block = 64;
@@ -27,7 +34,7 @@ int main(void) {
 
 	printf("\ndevice #%d, %s\n", device, deviceProp.name);
 
-	// global memory
+	// static global memory
 	float* value = (float*)malloc(sizeof(float));
 	*value = 1.23;
 
@@ -49,14 +56,11 @@ int main(void) {
 	cudaDeviceSynchronize();
 
 	printf("pinned memory test: ");
-	for (int x = 0; x < count; x++) {
-		printf("%d ", pinned_array[x]);
-	}
-	printf("\n");
+	printArray(pinned_array, count);
 
 	cudaFreeHost(pinned_array);
 
-	// zero-copy memory
+	// zero-copy memory (with UVA)
 	int* zero_copy_array;
 	cudaHostAlloc((int**)&zero_copy_array, count*sizeof(int), cudaHostAllocMapped);
 	for (int x = 0; x < count; x++) {
@@ -66,11 +70,21 @@ int main(void) {
 	cudaDeviceSynchronize();
 
 	printf("zero-copy memory test: ");
-	for (int x = 0; x < count; x++) {
-		printf("%d ", zero_copy_array[x]);
-	}
-	printf("\n");
+	printArray(zero_copy_array, count);
 	cudaFreeHost(zero_copy_array);
+
+	// managed memory
+	int* managed_memory;
+	cudaMallocManaged((int**)&managed_memory, count*sizeof(int));
+	for (int x = 0; x < count; x++) {
+		managed_memory[x] = x * 2;
+	}
+	updateArray<<<grid,block>>>(managed_memory);
+	cudaDeviceSynchronize();
+
+	printf("managed memory: ");
+	printArray(managed_memory, count);
+	cudaFree(managed_memory);
 
 	cudaDeviceReset();
 	return 0;
