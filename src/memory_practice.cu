@@ -39,7 +39,7 @@ int main(void) {
 
 	// pinned memory
 	int* pinned_array;
-	cudaMallocHost((int**)&pinned_array, count* sizeof(int));
+	cudaHostAlloc((int**)&pinned_array, count* sizeof(int), cudaHostAllocDefault);
 
 	for (int x = 0; x < count; x++) {
 		pinned_array[x] = x;
