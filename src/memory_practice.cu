@@ -9,19 +9,23 @@ void changeGlobalData() {
 }
 
 __global__
-void updatePinnedArray(int* pinned_array) {
+void updateArray(int* array) {
 	int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-	pinned_array[idx] *= 2.00f;
+	array[idx] *= 2.00f;
 }
 
 int main(void) {
+	int count = 5;
+	int block = 64;
+	int grid = (count + block - 1) / block;
+
 	// device Information
 	int device = 0;
 	cudaSetDevice(device);
 	cudaDeviceProp deviceProp;
 	cudaGetDeviceProperties(&deviceProp, device);
 
-	printf("\nDevice #%d, %s\n", device, deviceProp.name);
+	printf("\ndevice #%d, %s\n", device, deviceProp.name);
 
 	// global memory
 	float* value = (float*)malloc(sizeof(float));
@@ -31,13 +35,9 @@ int main(void) {
 	changeGlobalData<<<1,1>>>();
 	cudaMemcpyFromSymbol(value, globalData, sizeof(float));
 
-	printf("%f\n", *value);
+	printf("static global memory test: %f\n", *value);
 
 	// pinned memory
-	int count = 5;
-	int block = 64;
-	int grid = (count + block - 1) / block;
-
 	int* pinned_array;
 	cudaMallocHost((int**)&pinned_array, count* sizeof(int));
 
@@ -45,15 +45,32 @@ int main(void) {
 		pinned_array[x] = x;
 	}
 
-	updatePinnedArray<<<grid,block>>>(pinned_array);
+	updateArray<<<grid,block>>>(pinned_array);
 	cudaDeviceSynchronize();
 
+	printf("pinned memory test: ");
 	for (int x = 0; x < count; x++) {
 		printf("%d ", pinned_array[x]);
 	}
 	printf("\n");
 
 	cudaFreeHost(pinned_array);
+
+	// zero-copy memory
+	int* zero_copy_array;
+	cudaHostAlloc((int**)&zero_copy_array, count*sizeof(int), cudaHostAllocMapped);
+	for (int x = 0; x < count; x++) {
+		zero_copy_array[x] = count - x;
+	}
+	updateArray<<<grid,block>>>(zero_copy_array);
+	cudaDeviceSynchronize();
+
+	printf("zero-copy memory test: ");
+	for (int x = 0; x < count; x++) {
+		printf("%d ", zero_copy_array[x]);
+	}
+	printf("\n");
+	cudaFreeHost(zero_copy_array);
 
 	cudaDeviceReset();
 	return 0;
