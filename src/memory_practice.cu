@@ -31,15 +31,13 @@ int main(void) {
 	changeGlobalData<<<1,1>>>();
 	cudaMemcpyFromSymbol(value, globalData, sizeof(float));
 
-	cudaDeviceReset();
-
 	printf("%f\n", *value);
 
 	// pinned memory
 	int count = 5;
 	int block = 64;
 	int grid = (count + block - 1) / block;
-	
+
 	int* pinned_array;
 	cudaMallocHost((int**)&pinned_array, count* sizeof(int));
 
@@ -55,5 +53,8 @@ int main(void) {
 	}
 	printf("\n");
 
+	cudaFreeHost(pinned_array);
+
+	cudaDeviceReset();
 	return 0;
 }
