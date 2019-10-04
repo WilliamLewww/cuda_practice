@@ -17,6 +17,7 @@ clean:
 compile:
 	mkdir -p bin
 	$(NVCC) $(CUDAFLAGS) ./src/$(CURRENTFILE).cu -o ./bin/$(CURRENTFILE).out
+	
 run:
 	./bin/$(CURRENTFILE).out
 
