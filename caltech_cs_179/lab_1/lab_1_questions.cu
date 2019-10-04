@@ -47,6 +47,24 @@ void test5() {
     }
 }
 
+void question1() {
+    /*
+        y_1[n] = x[n - 1] + x[n] + x[n + 1]
+        y_2[n] = y_2[n - 2] + y_2[n - 1] + x[n]
+
+        The second implementation would be harder because we would need to syncronize the GPU code due to the
+        sequential nature of the statement. The first implementation is better because it does not require
+        syncronization of threads and can all be done in parallel.
+
+    */
+}
+
+void question2() {
+    /*
+        y[n] = c * x[n] + (1 - c) * y[n - 1]
+    */
+}
+
 int main(void) {
 	test1();
 	test2();
