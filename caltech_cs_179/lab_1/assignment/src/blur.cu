@@ -20,7 +20,16 @@ void cuda_blur_kernel_convolution(uint thread_index, const float* gpu_raw_data,
     //       completed for each thread_index. Use the CPU implementation in
     //       blur.cpp as a reference.
 
-    gpu_out_data[thread_index] = thread_index;
+    if (thread_index < blur_v_size) {
+        for (int x = 0; x <= thread_index; x++) {
+            gpu_out_data[thread_index] += gpu_raw_data[thread_index - x] * gpu_blur_v[x];
+        }
+    }
+    if (thread_index >= blur_v_size) {
+        for (int x = 0; x <= blur_v_size; x++) {
+            gpu_out_data[thread_index] += gpu_raw_data[thread_index - x] * gpu_blur_v[x];
+        }
+    }
 }
 
 __global__

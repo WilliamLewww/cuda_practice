@@ -52,9 +52,9 @@ void question1() {
         y_1[n] = x[n - 1] + x[n] + x[n + 1]
         y_2[n] = y_2[n - 2] + y_2[n - 1] + x[n]
 
-        The second implementation would be harder because we would need to syncronize the GPU code due to the
-        sequential nature of the statement. The first implementation is better because it does not require
-        syncronization of threads and can all be done in parallel.
+        The second implementation would be harder because we would need to syncronize the GPU 
+        code due to the sequential nature of the statement. The first implementation is better 
+        because it does not require syncronization of threads and can all be done in parallel.
 
     */
 }
@@ -62,6 +62,11 @@ void question1() {
 void question2() {
     /*
         y[n] = c * x[n] + (1 - c) * y[n - 1]
+
+        The code is not capable of running in parallel because it requires the previous iteration
+        of the function. If c is close to 1, we could ignore the "y[n - 1]" part of the code 
+        because it will be close to 0. In this case if we drop the last part of the calculation
+        we could easily implement the code in a parallel manner.
     */
 }
 
