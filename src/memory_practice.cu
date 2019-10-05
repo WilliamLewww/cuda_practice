@@ -26,6 +26,43 @@ void printDeviceMemoryArray(int* array, int count) {
 	}
 }
 
+extern __shared__ int sharedData[];
+__global__
+void createArrayInSharedMemory(int count) {
+    int* data = (int*)sharedData;
+
+    int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+	if (idx < count) {
+		data[idx] = idx;
+	}
+	__syncthreads();
+
+	if (idx == 0) {
+		for (int x = 0; x < count; x++) {
+			printf("%d ", data[x]);
+		}
+		printf("\n");
+	}
+}
+
+__global__
+void createArrayInSharedMemoryStatic() {
+	__shared__ int data[5];
+
+    int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+	if (idx < 5) {
+		data[idx] = idx;
+	}
+	__syncthreads();
+
+	if (idx == 0) {
+		for (int x = 0; x < 5; x++) {
+			printf("%d ", data[x]);
+		}
+		printf("\n");
+	}
+}
+
 void printArray(int* array, int count) {
 	for (int x = 0; x < count; x++) {
 		printf("%d ", array[x]);
@@ -54,7 +91,23 @@ int main(void) {
 	changeGlobalData<<<1,1>>>();
 	cudaMemcpyFromSymbol(value, globalData, sizeof(float));
 
-	printf("static global memory test: %f\n", *value);
+	printf("static global memory: %f\n", *value);
+
+	// dynamic global memory
+	int* host_memory = (int*)malloc(count*sizeof(int));
+	for (int x = 0; x < count; x++) {
+		host_memory[x] = x * x + 1;
+	}
+
+	int* device_memory;
+	cudaMalloc((int**)&device_memory, count*sizeof(int));
+	cudaMemcpy(device_memory, host_memory, count*sizeof(int), cudaMemcpyHostToDevice);
+	printf("dynamic global memory: ");
+	printDeviceMemoryArray<<<grid,block>>>(device_memory, count);
+	cudaDeviceSynchronize();
+	printf("\n");
+	cudaFree(device_memory);
+	free(host_memory);
 
 	// pinned memory
 	int* pinned_array;
@@ -67,7 +120,7 @@ int main(void) {
 	updateArray<<<grid,block>>>(pinned_array, count);
 	cudaDeviceSynchronize();
 
-	printf("pinned memory test: ");
+	printf("pinned memory: ");
 	printArray(pinned_array, count);
 
 	cudaFreeHost(pinned_array);
@@ -81,7 +134,7 @@ int main(void) {
 	updateArray<<<grid,block>>>(zero_copy_array, count);
 	cudaDeviceSynchronize();
 
-	printf("zero-copy memory test: ");
+	printf("zero-copy memory: ");
 	printArray(zero_copy_array, count);
 	cudaFreeHost(zero_copy_array);
 
@@ -98,21 +151,16 @@ int main(void) {
 	printArray(managed_memory, count);
 	cudaFree(managed_memory);
 
-	// general device memory
-	int* host_memory = (int*)malloc(count*sizeof(int));
-	for (int x = 0; x < count; x++) {
-		host_memory[x] = x * x + 1;
-	}
-
-	int* device_memory;
-	cudaMalloc((int**)&device_memory, count*sizeof(int));
-	cudaMemcpy(device_memory, host_memory, count*sizeof(int), cudaMemcpyHostToDevice);
-	printf("general device memory: ");
-	printDeviceMemoryArray<<<grid,block>>>(device_memory, count);
+	// static shared memory
+	printf("static shared memory: ");
+	createArrayInSharedMemoryStatic<<<grid,block>>>();
 	cudaDeviceSynchronize();
-	printf("\n");
-	cudaFree(device_memory);
-	free(host_memory);
+
+	// dynamic shared memory
+	int sharedMemorySize = count*sizeof(float);
+	printf("dynamic shared memory: ");
+	createArrayInSharedMemory<<<grid,block,sharedMemorySize>>>(count);
+	cudaDeviceSynchronize();
 
 	cudaDeviceReset();
 	return 0;
