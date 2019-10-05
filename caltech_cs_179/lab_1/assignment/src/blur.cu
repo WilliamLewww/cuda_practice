@@ -4,7 +4,6 @@
  * Revised by Nailen Matschke, 2016
  * Revised by Loko Kung, 2018
  */
-
 #include "blur.cuh"
 
 #include <cstdio>
@@ -20,26 +19,27 @@ void cuda_blur_kernel_convolution(uint thread_index, const float* gpu_raw_data,
     // TODO: Implement the necessary convolution function that should be
     //       completed for each thread_index. Use the CPU implementation in
     //       blur.cpp as a reference.
+
+    gpu_out_data[thread_index] = thread_index;
 }
 
 __global__
 void cuda_blur_kernel(const float *gpu_raw_data, const float *gpu_blur_v,
                       float *gpu_out_data, int n_frames, int blur_v_size) {
     // TODO: Compute the current thread index.
-    uint thread_index = threadIdx.x;
+    uint thread_index = (blockIdx.x * blockDim.x) + threadIdx.x;
 
     // TODO: Update the while loop to handle all indices for this thread.
     //       Remember to advance the index as necessary.
-    while (thread_index < blockDim.x) {
+    while (thread_index < n_frames + blur_v_size) {
         // Do computation for this thread index
         cuda_blur_kernel_convolution(thread_index, gpu_raw_data,
                                      gpu_blur_v, gpu_out_data,
                                      n_frames, blur_v_size);
         // TODO: Update the thread index
-        thread_index += 1;
+        thread_index += blockDim.x * gridDim.x;
     }
 }
-
 
 float cuda_call_blur_kernel(const unsigned int blocks,
                             const unsigned int threads_per_block,
@@ -76,7 +76,6 @@ float cuda_call_blur_kernel(const unsigned int blocks,
     //       Initialize the data as necessary.
     float* gpu_out_data;
     cudaMalloc((float**)&gpu_out_data, n_frames*sizeof(float));
-    cudaMemset(gpu_out_data, 0, n_frames*sizeof(float));
     
     // TODO: Appropriately call the kernel function.
     cuda_blur_kernel<<<blocks, threads_per_block>>>(gpu_raw_data, gpu_blur_v, gpu_out_data, n_frames, blur_v_size);

@@ -9,9 +9,21 @@ void changeGlobalData() {
 }
 
 __global__
-void updateArray(int* array) {
+void updateArray(int* array, int count) {
 	int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-	array[idx] *= 2.00f;
+
+	if (idx < count) {
+		array[idx] *= 2.00f;
+	}
+}
+
+__global__
+void printDeviceMemoryArray(int* array, int count) {
+	int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+
+	if (idx < count) {
+		printf("%d ", array[idx]);
+	}
 }
 
 void printArray(int* array, int count) {
@@ -52,7 +64,7 @@ int main(void) {
 		pinned_array[x] = x;
 	}
 
-	updateArray<<<grid,block>>>(pinned_array);
+	updateArray<<<grid,block>>>(pinned_array, count);
 	cudaDeviceSynchronize();
 
 	printf("pinned memory test: ");
@@ -66,7 +78,7 @@ int main(void) {
 	for (int x = 0; x < count; x++) {
 		zero_copy_array[x] = count - x;
 	}
-	updateArray<<<grid,block>>>(zero_copy_array);
+	updateArray<<<grid,block>>>(zero_copy_array, count);
 	cudaDeviceSynchronize();
 
 	printf("zero-copy memory test: ");
@@ -79,12 +91,28 @@ int main(void) {
 	for (int x = 0; x < count; x++) {
 		managed_memory[x] = x * 2;
 	}
-	updateArray<<<grid,block>>>(managed_memory);
+	updateArray<<<grid,block>>>(managed_memory, count);
 	cudaDeviceSynchronize();
 
 	printf("managed memory: ");
 	printArray(managed_memory, count);
 	cudaFree(managed_memory);
+
+	// general device memory
+	int* host_memory = (int*)malloc(count*sizeof(int));
+	for (int x = 0; x < count; x++) {
+		host_memory[x] = x * x + 1;
+	}
+
+	int* device_memory;
+	cudaMalloc((int**)&device_memory, count*sizeof(int));
+	cudaMemcpy(device_memory, host_memory, count*sizeof(int), cudaMemcpyHostToDevice);
+	printf("general device memory: ");
+	printDeviceMemoryArray<<<grid,block>>>(device_memory, count);
+	cudaDeviceSynchronize();
+	printf("\n");
+	cudaFree(device_memory);
+	free(host_memory);
 
 	cudaDeviceReset();
 	return 0;
