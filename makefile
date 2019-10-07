@@ -6,7 +6,7 @@ NVPROF=$(CUDAPATH)/bin/nvprof
 MEMCHECK=$(CUDAPATH)/bin/cuda-memcheck
 NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
 CUDAFLAGS=--gpu-architecture=sm_50 -rdc=true
-CURRENTFILE=memory_practice
+CURRENTFILE=memory_access_patterns
 
 all: clean compile run
 
