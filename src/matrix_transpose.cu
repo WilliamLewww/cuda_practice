@@ -61,6 +61,24 @@ void transposeReadColumnUnwrap8(float* out, float* in, int rowCount, int columnC
 	}
 }
 
+void transpose(float* out, float* in, int rowCount, int columnCount) {
+	for (int y = 0; y < columnCount; y++) {
+		for (int x = 0; x < rowCount; x++) {
+			out[x*columnCount+y] = in[y*rowCount+x];
+		}
+	}
+}
+
+bool checkMatrix(float* matrixA, float* matrixB, int rowCount, int columnCount) {
+	for (int x = 0; x < rowCount * columnCount; x++) {
+		if (matrixA[x] != matrixB[x]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void printMatrix(float* matrix, int rowCount, int columnCount) {
 	for (int y = 0; y < columnCount; y++) {
 		for (int x = 0; x < rowCount; x++) {
@@ -71,6 +89,7 @@ void printMatrix(float* matrix, int rowCount, int columnCount) {
 }
 
 int main(void) {
+	printf("\n");
 	int rowCount = 16;
 	int columnCount = 16;
 
@@ -82,6 +101,9 @@ int main(void) {
 	for (int x = 0; x < rowCount * columnCount; x++) { h_matrix[x] = x; }
 	float* h_transpose_matrix = (float*)malloc(rowCount*columnCount*sizeof(float));
 
+	float* expected_matrix = (float*)malloc(rowCount*columnCount*sizeof(float));
+	transpose(expected_matrix, h_matrix, rowCount, columnCount);
+
 	float* d_matrix;
 	cudaMalloc((float**)&d_matrix, rowCount*columnCount*sizeof(float));
 	cudaMemcpy(d_matrix, h_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyHostToDevice);
@@ -92,26 +114,31 @@ int main(void) {
 	transposeReadRow<<<grid,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("%-30s: %d\n", "transposeReadRow", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
 
 	transposeReadColumn<<<grid,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("%-30s: %d\n", "transposeReadColumn", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
 
 	transposeReadRowUnwrap8<<<gridUnwrap8,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("%-30s: %d\n", "transposeReadRowUnwrap8", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
 
 	transposeReadColumnUnwrap8<<<gridUnwrap8,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
-
-	printMatrix(h_transpose_matrix, rowCount, columnCount);
+	printf("%-30s: %d\n", "transposeReadColumnUnwrap8", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
 
 	cudaFree(d_matrix);
 	cudaFree(d_transpose_matrix);
 	free(h_matrix);
 	free(h_transpose_matrix);
+	free(expected_matrix);
 	cudaDeviceReset();
+
+	printf("\n");
 
 	return 0;
 }
