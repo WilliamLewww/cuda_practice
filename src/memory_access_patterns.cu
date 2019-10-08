@@ -24,12 +24,22 @@ void misalignedWriteHost(float* arrayA, float* arrayB, float* arrayC, int count,
 
 __global__
 void arrayOfStructuresTest(AoS* arrayA, AoS* arrayB, int count) {
+	int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
 
+	if (idx < count) {
+		arrayB[idx].x = arrayA[idx].x * 2;
+		arrayB[idx].y = arrayA[idx].y * 2;
+	}
 }
 
 __global__
 void structureOfArraysTest(SoA* structureA, SoA* structureB, int count) {
+	int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
 
+	if (idx < count) {
+		structureB->x[idx] = structureA->x[idx] * 2;
+		structureB->y[idx] = structureA->y[idx] * 2; 
+	}
 }
 
 __global__
