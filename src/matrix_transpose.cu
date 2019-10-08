@@ -71,11 +71,12 @@ void printMatrix(float* matrix, int rowCount, int columnCount) {
 }
 
 int main(void) {
-	int rowCount = 4;
-	int columnCount = 4;
+	int rowCount = 16;
+	int columnCount = 16;
 
 	dim3 block(32,32);
 	dim3 grid((columnCount+block.x-1)/block.x, (rowCount+block.y-1)/block.y);
+	dim3 gridUnwrap8((columnCount+(block.x/8)-1)/(block.x/8), (rowCount+block.y-1)/block.y);
 
 	float* h_matrix = (float*)malloc(rowCount*columnCount*sizeof(float));
 	for (int x = 0; x < rowCount * columnCount; x++) { h_matrix[x] = x; }
@@ -96,11 +97,11 @@ int main(void) {
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
 
-	transposeReadRowUnwrap8<<<grid,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
+	transposeReadRowUnwrap8<<<gridUnwrap8,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
 
-	transposeReadColumnUnwrap8<<<grid,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
+	transposeReadColumnUnwrap8<<<gridUnwrap8,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
 
