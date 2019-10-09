@@ -61,6 +61,32 @@ void transposeReadColumnUnwrap8(float* out, float* in, int rowCount, int columnC
 	}
 }
 
+__global__
+void transposeDiagonalReadRow(float* out, float* in, int rowCount, int columnCount) {
+	int blockX = (blockIdx.x + blockIdx.y) % gridDim.x;
+	int blockY = blockIdx.x;
+
+	int idx = (blockX * blockDim.x) + threadIdx.x;
+	int idy = (blockY * blockDim.y) + threadIdx.y;
+
+	if (idx < columnCount && idy < columnCount) {
+		out[idx*columnCount+idy] = in[idy*rowCount+idx];
+	}
+}
+
+__global__
+void transposeDiagonalReadColumn(float* out, float* in, int rowCount, int columnCount) {
+	int blockX = (blockIdx.x + blockIdx.y) % gridDim.x;
+	int blockY = blockIdx.x;
+
+	int idx = (blockX * blockDim.x) + threadIdx.x;
+	int idy = (blockY * blockDim.y) + threadIdx.y;
+
+	if (idx < columnCount && idy < columnCount) {
+		out[idy*rowCount+idx] = in[idx*columnCount+idy];
+	}
+}
+
 void transpose(float* out, float* in, int rowCount, int columnCount) {
 	for (int y = 0; y < columnCount; y++) {
 		for (int x = 0; x < rowCount; x++) {
@@ -90,8 +116,8 @@ void printMatrix(float* matrix, int rowCount, int columnCount) {
 
 int main(void) {
 	printf("\n");
-	int rowCount = 16;
-	int columnCount = 16;
+	int rowCount = 64;
+	int columnCount = 64;
 
 	dim3 block(32,32);
 	dim3 grid((columnCount+block.x-1)/block.x, (rowCount+block.y-1)/block.y);
@@ -130,6 +156,16 @@ int main(void) {
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
 	printf("%-30s: %d\n", "transposeReadColumnUnwrap8", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
+
+	transposeDiagonalReadRow<<<gridUnwrap8,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
+	cudaDeviceSynchronize();
+	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("%-30s: %d\n", "transposeDiagonalReadRow", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
+
+	transposeDiagonalReadColumn<<<gridUnwrap8,block>>>(d_transpose_matrix, d_matrix, rowCount, columnCount);
+	cudaDeviceSynchronize();
+	cudaMemcpy(h_transpose_matrix, d_transpose_matrix, rowCount*columnCount*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("%-30s: %d\n", "transposeDiagonalReadColumn", checkMatrix(expected_matrix, h_transpose_matrix, rowCount, columnCount));
 
 	cudaFree(d_matrix);
 	cudaFree(d_transpose_matrix);
