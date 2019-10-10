@@ -1,6 +1,7 @@
 #include <stdio.h>
 #define MATRIX_ROWS 5
 #define MATRIX_COLUMNS 5
+#define SHARED_MEMORY_PADDING 1
 
 __global__
 void createMatrixStatic(float* out) {
@@ -13,6 +14,17 @@ void createMatrixStatic(float* out) {
 		matrix[idy][idx] = idx + idy;
 		out[idy*MATRIX_COLUMNS+idx] = matrix[idy][idx];
 	}
+}
+
+__global__
+void createMatrixStaticPadding(float* out) {
+	__shared__ float matrix[MATRIX_ROWS][MATRIX_COLUMNS+SHARED_MEMORY_PADDING];
+
+	int idx = threadIdx.y * blockDim.x + threadIdx.x;
+	matrix[threadIdx.y][threadIdx.x] = idx;
+
+	__syncthreads();
+	out[idx] = matrix[threadIdx.y][threadIdx.x];
 }
 
 void printMatrix(float* matrix) {
@@ -38,8 +50,20 @@ int main(void) {
 	createMatrixStatic<<<grid,block>>>(device_matrix);
 	cudaDeviceSynchronize();
 	cudaMemcpy(host_matrix, device_matrix, MATRIX_ROWS*MATRIX_COLUMNS*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("createMatrixStatic\n");
 	printMatrix(host_matrix);
+	printf("\n");
 
+	createMatrixStaticPadding<<<grid.x,block.x>>>(device_matrix);
+	cudaDeviceSynchronize();
+	cudaMemcpy(host_matrix, device_matrix, MATRIX_ROWS*MATRIX_COLUMNS*sizeof(float), cudaMemcpyDeviceToHost);
+	printf("createMatrixStaticPadding\n");
+	printMatrix(host_matrix);
+	printf("\n");
+
+	free(host_matrix);
+	cudaFree(device_matrix);
+	cudaDeviceReset();
 	printf("\n");
 	return 0;
 }
