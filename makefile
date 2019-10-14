@@ -6,7 +6,7 @@ NVPROF=$(CUDAPATH)/bin/nvprof
 MEMCHECK=$(CUDAPATH)/bin/cuda-memcheck
 NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
 CUDAFLAGS=--gpu-architecture=sm_50 -rdc=true
-CURRENTFILE=shared_memory_2D
+CURRENTFILE=array_sum_shared
 
 all: clean compile run
 
