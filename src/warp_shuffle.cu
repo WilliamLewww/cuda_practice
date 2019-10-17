@@ -33,10 +33,16 @@ void shuffleButterfly(float* out, float* in, int count) {
 	out[idx] = local_value;
 }
 
+void printArray(const char* label, float* array, int count) {
+	printf("%-20s ", label);
+	for (int x = 0; x < count; x++) { printf("%3d", int(array[x])); }
+	printf("\n");
+}
+
 int main(void) {
 	printf("\n");
 
-	int count = 32;
+	int count = 16;
 	dim3 block(8);
 	dim3 grid((count + block.x - 1) / block.x);
 
@@ -52,20 +58,17 @@ int main(void) {
 	shuffleUp<<<grid, block>>>(d_result_array, d_array, count);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_result_array, d_result_array, count*sizeof(float), cudaMemcpyDeviceToHost);
-	for (int x = 0; x < count; x++) { printf("%d ", int(h_result_array[x])); }
-	printf("\n");
+	printArray("shuffleUp: ", h_result_array, count);
 
 	shuffleDown<<<grid, block>>>(d_result_array, d_array, count);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_result_array, d_result_array, count*sizeof(float), cudaMemcpyDeviceToHost);
-	for (int x = 0; x < count; x++) { printf("%d ", int(h_result_array[x])); }
-	printf("\n");
+	printArray("shuffleDown: ", h_result_array, count);
 
 	shuffleButterfly<<<grid, block>>>(d_result_array, d_array, count);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_result_array, d_result_array, count*sizeof(float), cudaMemcpyDeviceToHost);
-	for (int x = 0; x < count; x++) { printf("%d ", int(h_result_array[x])); }
-	printf("\n");
+	printArray("shuffleButterfly: ", h_result_array, count);
 
 	free(h_array);
 	free(h_result_array);
