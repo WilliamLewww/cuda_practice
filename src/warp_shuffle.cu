@@ -48,6 +48,8 @@ int main(void) {
 
 	float* h_array = (float*)malloc(count*sizeof(float));
 	for (int x = 0; x < count; x++) { h_array[x] = x; }
+	printArray("array: ", h_array, count);
+
 	float* h_result_array = (float*)malloc(count*sizeof(float));
 
 	float *d_array, *d_result_array;
