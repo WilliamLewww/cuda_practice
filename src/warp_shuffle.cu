@@ -6,7 +6,7 @@ void shuffleUp(float* out, float* in, int count) {
 	if (idx > count) return;
 
 	float local_value = in[idx];
-	local_value = __shfl_up_sync(0xffffffff, local_value, 2);
+	local_value = __shfl_up_sync(0xffffffff, local_value, 1);
 
 	out[idx] = local_value;
 }
@@ -17,7 +17,18 @@ void shuffleDown(float* out, float* in, int count) {
 	if (idx > count) return;
 
 	float local_value = in[idx];
-	local_value = __shfl_down_sync(0xffffffff, local_value, 2);
+	local_value = __shfl_down_sync(0xffffffff, local_value, 1);
+
+	out[idx] = local_value;
+}
+
+__global__
+void shuffleButterfly(float* out, float* in, int count) {
+	int idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+	if (idx > count) return;
+
+	float local_value = in[idx];
+	local_value = __shfl_xor_sync(0xffffffff, local_value, 1);
 
 	out[idx] = local_value;
 }
@@ -45,6 +56,12 @@ int main(void) {
 	printf("\n");
 
 	shuffleDown<<<grid, block>>>(d_result_array, d_array, count);
+	cudaDeviceSynchronize();
+	cudaMemcpy(h_result_array, d_result_array, count*sizeof(float), cudaMemcpyDeviceToHost);
+	for (int x = 0; x < count; x++) { printf("%d ", int(h_result_array[x])); }
+	printf("\n");
+
+	shuffleButterfly<<<grid, block>>>(d_result_array, d_array, count);
 	cudaDeviceSynchronize();
 	cudaMemcpy(h_result_array, d_result_array, count*sizeof(float), cudaMemcpyDeviceToHost);
 	for (int x = 0; x < count; x++) { printf("%d ", int(h_result_array[x])); }
