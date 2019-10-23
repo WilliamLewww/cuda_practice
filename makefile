@@ -5,6 +5,8 @@ NVCC=$(CUDAPATH)/bin/nvcc
 NVPROF=$(CUDAPATH)/bin/nvprof
 MEMCHECK=$(CUDAPATH)/bin/cuda-memcheck
 NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
+NVVP=$(CUDAPATH)/bin/nvvp
+
 CUDAFLAGS=--gpu-architecture=sm_50 -rdc=true
 CURRENTFILE=streams_events
 
@@ -44,3 +46,6 @@ profile-events:
 nsight-cli:
 	mkdir -p dump
 	cd dump; sudo $(NSIGHTCLI) ../bin/$(CURRENTFILE).out > nsight-cli.log; cat nsight-cli.log;
+
+nvvp:
+	sudo $(NVVP) -vm /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java

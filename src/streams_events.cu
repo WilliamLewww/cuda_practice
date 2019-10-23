@@ -1,4 +1,5 @@
 #include <stdio.h>
+#define STREAM_COUNT 3
 
 __global__
 void createIncrementingArray(float* out, int count) {
@@ -29,9 +30,11 @@ void createArraysNullStream(int count, dim3 block, dim3 grid) {
 	cudaMalloc((float**)&d_result_second, count*sizeof(float));
 	cudaMalloc((float**)&d_result_third, count*sizeof(float));
 
-	createIncrementingArray<<<grid, block>>>(d_result_first, count);
-	createIncrementingArray<<<grid, block>>>(d_result_second, count);
-	createIncrementingArray<<<grid, block>>>(d_result_third, count);
+	for (int x = 0; x < STREAM_COUNT; x++) {
+		createIncrementingArray<<<grid, block>>>(d_result_first, count);
+		createIncrementingArray<<<grid, block>>>(d_result_second, count);
+		createIncrementingArray<<<grid, block>>>(d_result_third, count);
+	}
 
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
@@ -61,9 +64,17 @@ void createArrayNonNullStream(int count, dim3 block, dim3 grid) {
 	cudaMalloc((float**)&d_result_second, count*sizeof(float));
 	cudaMalloc((float**)&d_result_third, count*sizeof(float));
 
-	createIncrementingArray<<<grid, block>>>(d_result_first, count);
-	createIncrementingArray<<<grid, block>>>(d_result_second, count);
-	createIncrementingArray<<<grid, block>>>(d_result_third, count);
+	int streamCount = STREAM_COUNT;
+	cudaStream_t* streams = (cudaStream_t*)malloc(streamCount*sizeof(cudaStream_t));
+	for (int x = 0; x < streamCount; x++) {
+		cudaStreamCreate(&streams[x]);
+	}
+
+	for (int x = 0; x < streamCount; x++) {
+		createIncrementingArray<<<grid, block, 0, streams[x]>>>(d_result_first, count);
+		createIncrementingArray<<<grid, block, 0, streams[x]>>>(d_result_first, count);
+		createIncrementingArray<<<grid, block, 0, streams[x]>>>(d_result_first, count);
+	}
 
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
