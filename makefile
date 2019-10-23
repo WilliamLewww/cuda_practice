@@ -6,7 +6,7 @@ NVPROF=$(CUDAPATH)/bin/nvprof
 MEMCHECK=$(CUDAPATH)/bin/cuda-memcheck
 NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
 CUDAFLAGS=--gpu-architecture=sm_50 -rdc=true
-CURRENTFILE=array_sum_shared
+CURRENTFILE=streams_events
 
 all: clean compile run
 kepler: clean compile-kepler run
