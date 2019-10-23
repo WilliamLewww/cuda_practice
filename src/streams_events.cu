@@ -42,7 +42,7 @@ void createArraysNullStream(int count, dim3 block, dim3 grid) {
 	float time;
 	cudaEventElapsedTime(&time, start, stop);
 
-	printf("%s%f\n", "Null-Stream: ", time);
+	printf("%-30s%f\n", "Null Stream: ", time);
 
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
@@ -82,7 +82,7 @@ void createArrayNonNullStream(int count, dim3 block, dim3 grid) {
 	float time;
 	cudaEventElapsedTime(&time, start, stop);
 
-	printf("%s%f\n", "Null-Stream: ", time);
+	printf("%-30s%f\n", "Non-Null Stream: ", time);
 
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
