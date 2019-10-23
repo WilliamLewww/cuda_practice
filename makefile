@@ -9,6 +9,7 @@ CUDAFLAGS=--gpu-architecture=sm_50 -rdc=true
 CURRENTFILE=streams_events
 
 all: clean compile run
+all-kepler: clean compile-kepler run
 
 clean:
 	rm -rf bin
@@ -17,6 +18,10 @@ clean:
 compile:
 	mkdir -p bin
 	$(NVCC) $(CUDAFLAGS) ./src/$(CURRENTFILE).cu -o ./bin/$(CURRENTFILE).out
+
+compile-kepler:
+	mkdir -p bin
+	$(NVCC) ./src/$(CURRENTFILE).cu -o ./bin/$(CURRENTFILE).out
 	
 run:
 	./bin/$(CURRENTFILE).out
