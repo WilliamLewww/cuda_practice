@@ -1,4 +1,5 @@
 CUDAPATH=/usr/local/cuda-10.1
+CURRENTPATH=$(shell pwd)
 
 CC=g++
 NVCC=$(CUDAPATH)/bin/nvcc
@@ -48,4 +49,4 @@ nsight-cli:
 	cd dump; sudo $(NSIGHTCLI) ../bin/$(CURRENTFILE).out > nsight-cli.log; cat nsight-cli.log;
 
 nvvp:
-	sudo $(NVVP) -vm /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+	sudo $(NVVP) $(CURRENTPATH)/bin/$(CURRENTFILE).out -vm /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
