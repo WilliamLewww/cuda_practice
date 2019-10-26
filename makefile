@@ -9,7 +9,7 @@ NSIGHTCLI=$(CUDAPATH)/bin/nv-nsight-cu-cli
 NVVP=$(CUDAPATH)/bin/nvvp
 
 CUDAFLAGS=--gpu-architecture=sm_50 -rdc=true
-CURRENTFILE=streams_events
+CURRENTFILE=simple_sort
 
 all: clean compile run
 kepler: clean compile-kepler run
