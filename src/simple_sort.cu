@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <time.h>
 
+__global__
+void sortArray(int* array, int count) {
+	int idx = (blockIdx.x * blockDim.x * 2) + threadIdx.x;
+	if (idx >= count) { return; }
+}
+
 void printArray(int* array, int count) {
 	for (int x = 0; x < count; x++) {
 		printf("%d ", array[x]);
@@ -20,6 +26,16 @@ int main(void) {
 
 	int* host_array = (int*)malloc(count*sizeof(int));
 	for (int x = 0; x < count; x++) { host_array[x] = rand() % count; }
+
+	int* device_array;
+	cudaMalloc((int**)&device_array, count*sizeof(int));
+	cudaMemcpy(device_array, host_array, count*sizeof(int), cudaMemcpyHostToDevice);
+
+	sortArray<<<grid,block>>>(device_array, count);
+	cudaDeviceSynchronize();
+
+	cudaMemcpy(host_array, device_array, count*sizeof(int), cudaMemcpyDeviceToHost);
+	printArray(host_array, count);
 
 	printf("\n");
 	return 0;
