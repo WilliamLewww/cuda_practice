@@ -44,11 +44,11 @@ int main(void) {
 	dim3 block(BLOCK_DIM_X);
 	dim3 grid(1);
 
-	const float h_coef[] = { 5, 4, 3, 2, 1 };
+	const float h_coef[] = { 1, 1, 1, 1, 1 };
 	cudaMemcpyToSymbol(coef, h_coef, (RADIUS + 1) * sizeof(float));
 
 	float* host_array = (float*)malloc(count*sizeof(float));
-	for (int x = 0; x < count; x++) { host_array[x] = x; }
+	for (int x = 0; x < count; x++) { host_array[x] = 1; }
 	float* host_result_array = (float*)malloc(count*sizeof(float));
 
 	float *device_array, *device_result_array;
