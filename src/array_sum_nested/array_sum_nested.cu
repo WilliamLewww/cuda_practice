@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "analysis.h"
+#include "../common_headers/analysis.h"
 
 __global__
 void nestedHelloWorld(int count, int depth) {
