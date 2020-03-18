@@ -1,27 +1,30 @@
 #include <stdio.h>
 
-#define OUTER_LOOP_COUNT 3000
+#define OUTER_LOOP_COUNT 1000
 #define INNER_LOOP_COUNT 1000
 
 __global__
 void warmUp(int* out, int* in, int size) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
   if (idx >= size) return;
+  
   out[idx] = in[idx];
 }
 
 __global__
 void branchKernel(int* out, int* in, int size) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
   if (idx >= size) return;
+
+  int data = in[idx];
 
   for (int x = 0; x < OUTER_LOOP_COUNT; x++) {
     for (int y = 0; y < INNER_LOOP_COUNT; y++) {
-      if (idx % 2 == 0) {
-        out[idx] = in[idx] * 2;
-      }
+
+      if (x % 2 == 0) { out[idx] += data; }
+      if (y % 2 == 0) { out[idx] += data; }
+      if ((x + y) % 2 == 0) { out[idx] += data; }
+
     }
   }
 }
@@ -29,18 +32,23 @@ void branchKernel(int* out, int* in, int size) {
 __global__
 void calculateKernel(int* out, int* in, int size) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
   if (idx >= size) return;
+
+  int data = in[idx];
 
   for (int x = 0; x < OUTER_LOOP_COUNT; x++) {
     for (int y = 0; y < INNER_LOOP_COUNT; y++) {
-      out[idx] = in[idx] * 2 * (idx % 2 == 0);
+
+      out[idx] += data * (x % 2 == 0);
+      out[idx] += data * (y % 2 == 0);
+      out[idx] += data * ((x + y) % 2 == 0);
+
     }
   }
 }
 
 int main(void) {
-  int dataCount = 10000;
+  int dataCount = 1000;
   int* h_data = (int*)malloc(dataCount*sizeof(int));
 
   dim3 block(32);
